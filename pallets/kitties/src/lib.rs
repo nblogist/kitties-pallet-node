@@ -71,6 +71,8 @@ decl_storage! {
 		pub ClassId get(fn class_id): T::ClassId;
 		/// Nonce for auto breed to prevent replay attack
 		pub AutoBreedNonce get(fn auto_breed_nonce): u32;
+
+		pub KittyDifficultyMultiplier get(fn kitty_difficulty_multiplier) : map hasher(blake2_128_concat) KittyIndexOf<T> => u32;
 	}
 	add_extra_genesis {
 		build(|_config| {
@@ -108,6 +110,7 @@ decl_error! {
 		NotForSale,
 		PriceTooLow,
 		BuyFromSelf,
+		DifficultyOverFlow,
 	}
 }
 
@@ -204,6 +207,8 @@ decl_module! {
 			let kitty2 = NftModule::<T>::tokens(Self::class_id(), kitty_id_2).ok_or(Error::<T>::InvalidKittyId)?;
 
 			Self::do_breed(kitty1.owner, kitty1.data, kitty2.data)?;
+			KittyDifficultyMultiplier::<T>::mutate(kitty_id_1, |difficulty| *difficulty = difficulty.saturating_add(1));
+			KittyDifficultyMultiplier::<T>::mutate(kitty_id_2, |difficulty| *difficulty = difficulty.saturating_add(1));
 		}
 
 		fn offchain_worker(_now: T::BlockNumber) {
