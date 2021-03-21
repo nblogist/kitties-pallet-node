@@ -271,7 +271,8 @@ impl<T: Trait> Module<T> {
 		let payload = (kitty_id_1, kitty_id_2, nonce, solution);
 		let hash = payload.using_encoded(blake2_128);
 		let hash_value = u128::from_le_bytes(hash);
-		let difficulty = T::DefaultDifficulty::get();
+		let multiplier = Self::kitty_difficulty_multiplier(kitty_id_1) + Self::kitty_difficulty_multiplier(kitty_id_2) + 1;
+		let difficulty = multiplier * T::DefaultDifficulty::get();
 
 		hash_value < (u128::max_value() / difficulty as u128)
 	}
